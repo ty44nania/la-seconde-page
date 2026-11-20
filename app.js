@@ -1,10 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-/*
-  1) Create a Supabase project.
-  2) Paste your Project URL and anon/public key below.
-  3) Run supabase-schema.sql in Supabase SQL Editor.
-*/
 const SUPABASE_URL = "https://tfcjnuumibxnukitshts.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_tn_VDS-a0xb-ZBnOEK3Azg__4Ib87eK";
 const configured = SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("PASTE_") && !SUPABASE_ANON_KEY.includes("PASTE_");
@@ -97,10 +92,7 @@ function renderCart(){
 function copyOrder(){
   const items=state.products.filter(p=>state.cart.has(p.id)&&p.status==="available");
   if(!items.length){toast("ยังไม่มีหนังสือที่เลือก");return;}
-  const text="สวัสดีค่ะ สนใจหนังสือจาก La Seconde Page ค่ะ
-"+items.map((p,i)=>`${i+1}. ${p.code} — ${p.title}`).join("
-")+"
-รบกวนตรวจสอบสินค้าและแจ้งยอดรวมพร้อมค่าส่งด้วยนะคะ ♡";
+  const text=["สวัสดีค่ะ สนใจหนังสือจาก La Seconde Page ค่ะ", ...items.map((p,i)=>`${i+1}. ${p.code} — ${p.title}`), "รบกวนตรวจสอบสินค้าและแจ้งยอดรวมพร้อมค่าส่งด้วยนะคะ ♡"].join("\n");
   if(navigator.clipboard?.writeText){navigator.clipboard.writeText(text).then(()=>toast("คัดลอกรายการแล้ว นำไปส่งทาง LINE ได้เลย")).catch(()=>toast("ไม่สามารถคัดลอกได้ กรุณาแคปหน้าจอแทน"));}
   else toast("กรุณาแคปหน้าจอรายการแล้วส่งให้ร้านนะคะ");
 }
@@ -255,7 +247,6 @@ async function saveProduct(e){
     ? await supabase.from("products").update(record).eq("id",id)
     : await supabase.from("products").insert(record);
 
-  // Fallback if image_urls column hasn't been added to products table yet
   if(result.error && /image_urls|column/i.test(result.error.message||"")){
     const {image_urls,...fallbackRecord}=record;
     result=id
