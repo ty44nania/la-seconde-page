@@ -10,14 +10,31 @@ const SUPABASE_ANON_KEY = "sb_publishable_tn_VDS-a0xb-ZBnOEK3Azg__4Ib87eK";
 const configured = SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("PASTE_") && !SUPABASE_ANON_KEY.includes("PASTE_");
 const supabase = configured ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
+const MAX_IMAGES = 6;
 const $ = (id) => document.getElementById(id);
-const state = { products: [], cart: new Set(JSON.parse(localStorage.getItem("lsp-cart") || "[]")), user: null, editingImage: null, selectedFile: null };
+const state = {
+  products: [],
+  cart: new Set(JSON.parse(localStorage.getItem("lsp-cart") || "[]")),
+  user: null,
+  editingImages: [],
+  selectedFiles: [],
+  activeDetailId: null,
+  activeDetailPhotoIdx: 0
+};
 const money = (n) => `${Number(n || 0).toLocaleString("th-TH")} บาท`;
 const esc = (s="") => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const statusText = (s) => ({available:"พร้อมจำหน่าย",reserved:"จองแล้ว",sold:"ขายแล้ว"}[s] || s);
 const toast = (msg) => { $("toast").textContent=msg; $("toast").classList.add("show"); setTimeout(()=>$("toast").classList.remove("show"),2400); };
 const openPanel = (id) => { $(id).classList.add("open"); $(id).setAttribute("aria-hidden","false"); };
 const closePanel = (id) => { $(id).classList.remove("open"); $(id).setAttribute("aria-hidden","true"); };
+
+function getImages(p){
+  const list = Array.isArray(p?.image_urls) && p.image_urls.length
+    ? p.image_urls
+    : (p?.image_url ? [p.image_url] : []);
+  return [...new Set(list.filter(Boolean))].slice(0, MAX_IMAGES);
+}
+
 document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>closePanel(b.dataset.close)));
 $("homeLink").addEventListener("click",e=>{e.preventDefault();window.scrollTo({top:0,behavior:"smooth"});});
 $("cartOpen").addEventListener("click",()=>{renderCart();openPanel("cartPanel");});
@@ -31,10 +48,22 @@ $("loginButton").addEventListener("click",login);
 $("logoutButton").addEventListener("click",logout);
 $("productForm").addEventListener("submit",saveProduct);
 $("resetForm").addEventListener("click",resetForm);
-$("pImage").addEventListener("change",previewFile);
+$("pImage").addEventListener("change",previewFiles);
+$("detailAddCart").addEventListener("click",()=>{
+  if(!state.activeDetailId)return;
+  toggleCart(state.activeDetailId);
+  syncDetailButton();
+});
 
 function saveCart(){localStorage.setItem("lsp-cart",JSON.stringify([...state.cart]));$("cartCount").textContent=state.cart.size;}
-function cover(p){return p.image_url ? `<img src="${esc(p.image_url)}" alt="ปกหนังสือ ${esc(p.title)}" loading="lazy">` : `<div class="cover-placeholder">La<br>Seconde<br>Page ♡</div>`;}
+function cover(p){
+  const imgs = getImages(p);
+  const badge = imgs.length > 1 ? `<span class="photo-count-tag">📷 ${imgs.length} รูป</span>` : "";
+  if(imgs.length){
+    return `<img src="${esc(imgs[0])}" alt="ปกหนังสือ ${esc(p.title)}" loading="lazy">${badge}`;
+  }
+  return `<div class="cover-placeholder">La<br>Seconde<br>Page ♡</div>${badge}`;
+}
 function categories(){
   const cats=[...new Set(state.products.map(p=>p.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"th"));
   const old=$("categoryFilter").value;
@@ -59,19 +88,68 @@ function renderBooks(){
 function toggleCart(id){if(state.cart.has(id))state.cart.delete(id);else state.cart.add(id);saveCart();renderBooks();renderCart();toast(state.cart.has(id)?"เพิ่มในรายการที่เลือกแล้ว ♡":"นำออกจากรายการแล้ว");}
 function renderCart(){
   const items=state.products.filter(p=>state.cart.has(p.id)&&p.status==="available");
-  $("cartItems").innerHTML=items.length?items.map(p=>`<div class="cart-row">${p.image_url?`<img src="${esc(p.image_url)}" alt="">`:'<div class="cart-thumb"></div>'}<div><strong>${esc(p.title)}</strong><small>${esc(p.code)} · ${esc(p.category||"")}</small></div><button class="remove-item" data-remove="${p.id}" aria-label="นำออก">×</button></div>`).join(""):'<div class="empty-state">ยังไม่มีหนังสือในรายการที่เลือก ♡</div>';
+  $("cartItems").innerHTML=items.length?items.map(p=>{
+    const imgs=getImages(p);
+    return `<div class="cart-row">${imgs.length?`<img src="${esc(imgs[0])}" alt="">`:'<div class="cart-thumb"></div>'}<div><strong>${esc(p.title)}</strong><small>${esc(p.code)} · ${esc(p.category||"")}</small></div><button class="remove-item" data-remove="${p.id}" aria-label="นำออก">×</button></div>`;
+  }).join(""):'<div class="empty-state">ยังไม่มีหนังสือในรายการที่เลือก ♡</div>';
   $("cartItems").querySelectorAll("[data-remove]").forEach(b=>b.addEventListener("click",()=>toggleCart(b.dataset.remove)));
 }
 function copyOrder(){
   const items=state.products.filter(p=>state.cart.has(p.id)&&p.status==="available");
   if(!items.length){toast("ยังไม่มีหนังสือที่เลือก");return;}
-  const text="สวัสดีค่ะ สนใจหนังสือจาก La Seconde Page ค่ะ\n"+items.map((p,i)=>`${i+1}. ${p.code} — ${p.title}`).join("\n")+"\nรบกวนตรวจสอบสินค้าและแจ้งยอดรวมพร้อมค่าส่งด้วยนะคะ ♡";
+  const text="สวัสดีค่ะ สนใจหนังสือจาก La Seconde Page ค่ะ
+"+items.map((p,i)=>`${i+1}. ${p.code} — ${p.title}`).join("
+")+"
+รบกวนตรวจสอบสินค้าและแจ้งยอดรวมพร้อมค่าส่งด้วยนะคะ ♡";
   if(navigator.clipboard?.writeText){navigator.clipboard.writeText(text).then(()=>toast("คัดลอกรายการแล้ว นำไปส่งทาง LINE ได้เลย")).catch(()=>toast("ไม่สามารถคัดลอกได้ กรุณาแคปหน้าจอแทน"));}
   else toast("กรุณาแคปหน้าจอรายการแล้วส่งให้ร้านนะคะ");
 }
+function syncDetailButton(){
+  const p=state.products.find(x=>x.id===state.activeDetailId);
+  if(!p)return;
+  const btn=$("detailAddCart");
+  btn.disabled=p.status!=="available";
+  btn.textContent=p.status!=="available"
+    ? statusText(p.status)
+    : (state.cart.has(p.id)?"เลือกแล้ว ✓":"เลือกเล่มนี้ +");
+}
+function renderDetailGallery(imgs, title){
+  if(!imgs.length){
+    $("detailGallery").innerHTML=`<div class="detail-main-photo"><div class="cover-placeholder">La<br>Seconde<br>Page ♡</div></div>`;
+    return;
+  }
+  const idx=Math.min(Math.max(state.activeDetailPhotoIdx,0),imgs.length-1);
+  state.activeDetailPhotoIdx=idx;
+  const thumbs=imgs.length>1
+    ? `<div class="detail-thumbs">${imgs.map((u,i)=>`<button type="button" class="detail-thumb ${i===idx?"active":""}" data-photo-idx="${i}" aria-label="ดูรูปที่ ${i+1}"><img src="${esc(u)}" alt="${esc(title)} รูปที่ ${i+1}"></button>`).join("")}</div>`
+    : "";
+  $("detailGallery").innerHTML=`<div class="detail-main-photo"><img src="${esc(imgs[idx])}" alt="${esc(title)} รูปที่ ${idx+1}"></div>${thumbs}`;
+  $("detailGallery").querySelectorAll("[data-photo-idx]").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      state.activeDetailPhotoIdx=Number(btn.dataset.photoIdx);
+      renderDetailGallery(imgs, title);
+    });
+  });
+}
 function showDetail(id){
   const p=state.products.find(x=>x.id===id);if(!p)return;
-  alert(`${p.title}\nรหัส: ${p.code}\nผู้เขียน: ${p.author||"-"}\nหมวดหมู่: ${p.category||"-"}\nราคา: ${money(p.price)}\nสถานะ: ${statusText(p.status)}\n\nสภาพและตำหนิ:\n${p.condition||"-"}\n\nรายละเอียดเพิ่มเติม:\n${p.description||"-"}`);
+  state.activeDetailId=p.id;
+  state.activeDetailPhotoIdx=0;
+  const imgs=getImages(p);
+  $("detailCode").textContent=`BOOK CODE · ${p.code || "-"}`;
+  $("detailTitle").textContent=p.title;
+  renderDetailGallery(imgs, p.title);
+  $("detailMeta").innerHTML=`
+    <p class="detail-price">${money(p.price)}</p>
+    <p class="detail-row"><strong>สถานะ:</strong> ${esc(statusText(p.status))}</p>
+    <p class="detail-row"><strong>ผู้เขียน:</strong> ${esc(p.author||"-")}</p>
+    <p class="detail-row"><strong>หมวดหมู่:</strong> ${esc(p.category||"-")}</p>
+    <p class="detail-row"><strong>จำนวนรูป:</strong> ${imgs.length} รูป</p>
+    <div class="detail-box"><strong>สภาพและตำหนิ</strong><p>${esc(p.condition||"ยังไม่มีรายละเอียดสภาพ")}</p></div>
+    <div class="detail-box"><strong>รายละเอียดเพิ่มเติม</strong><p>${esc(p.description||"-")}</p></div>
+  `;
+  syncDetailButton();
+  openPanel("detailPanel");
 }
 async function loadProducts(){
   if(!configured){state.products=[];$("bookGrid").innerHTML='<div class="empty-state">เว็บไซต์พร้อมแล้ว ♡<br>ขั้นตอนถัดไปคือเชื่อมฐานข้อมูล Supabase ตามคู่มือ SETUP-TH.md<br>เมื่อเชื่อมต่อแล้ว หนังสือที่คุณเพิ่มจะปรากฏตรงนี้</div>';return;}
@@ -92,16 +170,40 @@ function renderAdminState(){
   if(logged){$("adminWelcome").textContent=`เข้าสู่ระบบ: ${state.user.email}`;renderAdminProducts();}
 }
 function resetForm(){
-  $("productForm").reset();$("productId").value="";$("formTitle").textContent="เพิ่มหนังสือเล่มใหม่";state.editingImage=null;state.selectedFile=null;$("imagePreview").textContent="ยังไม่ได้เลือกรูป";
+  $("productForm").reset();$("productId").value="";$("formTitle").textContent="เพิ่มหนังสือเล่มใหม่";
+  state.editingImages=[];state.selectedFiles=[];
+  $("imagePreview").innerHTML="ยังไม่ได้เลือกรูป";
 }
-function previewFile(){
-  const file=$("pImage").files[0];state.selectedFile=file||null;
-  if(file){const url=URL.createObjectURL(file);$("imagePreview").innerHTML=`<img src="${url}" alt="ตัวอย่างรูปหนังสือ">`;}
+function previewFiles(){
+  const files=Array.from($("pImage").files||[]);
+  if(files.length>MAX_IMAGES){
+    toast(`เลือกได้สูงสุด ${MAX_IMAGES} รูปต่อเล่ม ระบบจะใช้ ${MAX_IMAGES} รูปแรก`);
+  }
+  state.selectedFiles=files.slice(0,MAX_IMAGES);
+  renderFormPreviews();
+}
+function renderFormPreviews(){
+  const previewUrls = state.selectedFiles.length
+    ? state.selectedFiles.map(f=>URL.createObjectURL(f))
+    : state.editingImages;
+  if(!previewUrls.length){
+    $("imagePreview").innerHTML="ยังไม่ได้เลือกรูป";
+    return;
+  }
+  $("imagePreview").innerHTML=previewUrls.map((url,i)=>`
+    <div class="image-preview-item">
+      <img src="${esc(url)}" alt="รูปที่ ${i+1}">
+      <span class="image-badge">${i===0?"ปก":`รูป ${i+1}`}</span>
+    </div>
+  `).join("");
 }
 function renderAdminProducts(){
   if(!state.user)return;
   $("adminProductCount").textContent=`${state.products.length} เล่ม`;
-  $("adminProducts").innerHTML=state.products.length?state.products.map(p=>`<div class="admin-product">${p.image_url?`<img src="${esc(p.image_url)}" alt="">`:'<div class="cover-placeholder">♡</div>'}<div class="admin-product-main"><strong>${esc(p.code)} · ${esc(p.title)}</strong><small>${money(p.price)} · ${statusText(p.status)}</small></div><button data-edit="${p.id}">แก้ไข</button><button data-delete="${p.id}">ลบ</button></div>`).join(""):'<p class="tiny-note">ยังไม่มีหนังสือ เพิ่มเล่มแรกของคุณได้เลย</p>';
+  $("adminProducts").innerHTML=state.products.length?state.products.map(p=>{
+    const imgs=getImages(p);
+    return `<div class="admin-product">${imgs.length?`<img src="${esc(imgs[0])}" alt="">`:'<div class="cover-placeholder">♡</div>'}<div class="admin-product-main"><strong>${esc(p.code)} · ${esc(p.title)}</strong><small>${money(p.price)} · ${statusText(p.status)} · ${imgs.length} รูป</small></div><button data-edit="${p.id}">แก้ไข</button><button data-delete="${p.id}">ลบ</button></div>`;
+  }).join(""):'<p class="tiny-note">ยังไม่มีหนังสือ เพิ่มเล่มแรกของคุณได้เลย</p>';
   $("adminProducts").querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>editProduct(b.dataset.edit)));
   $("adminProducts").querySelectorAll("[data-delete]").forEach(b=>b.addEventListener("click",()=>deleteProduct(b.dataset.delete)));
 }
@@ -110,22 +212,59 @@ function editProduct(id){
   $("productId").value=p.id;$("pCode").value=p.code;$("pTitle").value=p.title;$("pAuthor").value=p.author||"";
   $("pPrice").value=p.price??"";$("pCategory").value=p.category||"";$("pStatus").value=p.status;
   $("pCondition").value=p.condition||"";$("pDescription").value=p.description||"";
-  state.editingImage=p.image_url||null;state.selectedFile=null;$("pImage").value="";
-  $("imagePreview").innerHTML=p.image_url?`<img src="${esc(p.image_url)}" alt="รูปปัจจุบัน">`:"ยังไม่มีรูป";
+  state.editingImages=getImages(p);state.selectedFiles=[];$("pImage").value="";
+  renderFormPreviews();
   $("formTitle").textContent="แก้ไขข้อมูลหนังสือ";$("productForm").scrollIntoView({behavior:"smooth"});
+}
+async function uploadImageFiles(files){
+  const urls=[];
+  for(const file of files.slice(0,MAX_IMAGES)){
+    const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
+    const path=`${crypto.randomUUID()}.${ext}`;
+    const {error:upErr}=await supabase.storage.from("book-images").upload(path,file,{upsert:false});
+    if(upErr)throw new Error("อัปโหลดรูปไม่สำเร็จ: "+upErr.message);
+    urls.push(supabase.storage.from("book-images").getPublicUrl(path).data.publicUrl);
+  }
+  return urls;
 }
 async function saveProduct(e){
   e.preventDefault();if(!state.user)return;
   const id=$("productId").value;
-  const record={code:$("pCode").value.trim(),title:$("pTitle").value.trim(),author:$("pAuthor").value.trim(),price:Number($("pPrice").value||0),category:$("pCategory").value.trim(),status:$("pStatus").value,condition:$("pCondition").value.trim(),description:$("pDescription").value.trim(),image_url:state.editingImage};
-  if(state.selectedFile){
-    const ext=(state.selectedFile.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"");
-    const path=`${crypto.randomUUID()}.${ext}`;
-    const {error:upErr}=await supabase.storage.from("book-images").upload(path,state.selectedFile,{upsert:false});
-    if(upErr){$("adminMessage").textContent="อัปโหลดรูปไม่สำเร็จ: "+upErr.message;return;}
-    record.image_url=supabase.storage.from("book-images").getPublicUrl(path).data.publicUrl;
+  let finalImages=[...state.editingImages];
+  try{
+    if(state.selectedFiles.length){
+      finalImages=await uploadImageFiles(state.selectedFiles);
+    }
+  }catch(err){
+    $("adminMessage").textContent=err.message;
+    return;
   }
-  const result=id?await supabase.from("products").update(record).eq("id",id):await supabase.from("products").insert(record);
+  const record={
+    code:$("pCode").value.trim(),
+    title:$("pTitle").value.trim(),
+    author:$("pAuthor").value.trim(),
+    price:Number($("pPrice").value||0),
+    category:$("pCategory").value.trim(),
+    status:$("pStatus").value,
+    condition:$("pCondition").value.trim(),
+    description:$("pDescription").value.trim(),
+    image_url:finalImages[0]||null,
+    image_urls:finalImages
+  };
+  let result=id
+    ? await supabase.from("products").update(record).eq("id",id)
+    : await supabase.from("products").insert(record);
+
+  // Fallback if image_urls column hasn't been added to products table yet
+  if(result.error && /image_urls|column/i.test(result.error.message||"")){
+    const {image_urls,...fallbackRecord}=record;
+    result=id
+      ? await supabase.from("products").update(fallbackRecord).eq("id",id)
+      : await supabase.from("products").insert(fallbackRecord);
+    if(!result.error){
+      toast("บันทึกปกสำเร็จ (แนะนำเพิ่มคอลัมน์ image_urls ใน Supabase เพื่อเก็บหลายรูป)");
+    }
+  }
   if(result.error){$("adminMessage").textContent="บันทึกไม่สำเร็จ: "+result.error.message;return;}
   $("adminMessage").textContent="บันทึกหนังสือเรียบร้อยแล้ว ♡";resetForm();await loadProducts();toast("บันทึกหนังสือแล้ว");
 }

@@ -76,6 +76,21 @@
     </section>
   </div>
 
+  <div class="overlay" id="detailPanel" aria-hidden="true">
+    <section class="drawer detail-drawer">
+      <div class="drawer-head">
+        <div><p class="eyebrow" id="detailCode">BOOK DETAIL</p><h2 id="detailTitle">รายละเอียดหนังสือ</h2></div>
+        <button class="icon-button" data-close="detailPanel" aria-label="ปิด">×</button>
+      </div>
+      <div id="detailGallery" class="detail-gallery"></div>
+      <div id="detailMeta" class="detail-meta"></div>
+      <div class="drawer-bottom">
+        <button class="primary-button full" id="detailAddCart">เลือกเล่มนี้ +</button>
+        <button class="secondary-button full" data-close="detailPanel">ปิดหน้าต่าง</button>
+      </div>
+    </section>
+  </div>
+
   <div class="overlay" id="adminPanel" aria-hidden="true">
     <section class="admin-modal">
       <div class="drawer-head"><div><p class="eyebrow">PRIVATE CORNER</p><h2>หลังบ้านของร้าน</h2></div><button class="icon-button" data-close="adminPanel" aria-label="ปิด">×</button></div>
@@ -101,8 +116,9 @@
           </div>
           <label>รายละเอียดสภาพ / ตำหนิ<textarea id="pCondition" rows="3" placeholder="เช่น ปกมีรอยถลอกเล็กน้อย กระดาษเหลืองตามอายุ"></textarea></label>
           <label>รายละเอียดเพิ่มเติม<textarea id="pDescription" rows="3" placeholder="รายละเอียดอื่น ๆ ของหนังสือ"></textarea></label>
-          <label>รูปหนังสือ<input id="pImage" type="file" accept="image/*"></label>
-          <div id="imagePreview" class="image-preview">ยังไม่ได้เลือกรูป</div>
+          <label>รูปหนังสือ (รูปแรกเป็นปก + เลือกรูปเพิ่มเติมได้รวมสูงสุด 6 รูป)<input id="pImage" type="file" accept="image/*" multiple></label>
+          <p class="tiny-note">เลือกได้หลายรูปพร้อมกัน (สูงสุด 6 รูป/เล่ม) เพื่อโชว์ตำหนิ สันหนังสือ หรือหน้าด้านใน</p>
+          <div id="imagePreview" class="image-preview-grid">ยังไม่ได้เลือกรูป</div>
           <div class="form-actions"><button type="submit" class="primary-button">บันทึกหนังสือ</button><button type="button" class="secondary-button" id="resetForm">ล้างฟอร์ม</button></div>
         </form>
         <div class="admin-list-head"><h3>รายการหนังสือ</h3><span id="adminProductCount"></span></div>
