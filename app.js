@@ -53,11 +53,10 @@ $("detailAddCart").addEventListener("click",()=>{
 function saveCart(){localStorage.setItem("lsp-cart",JSON.stringify([...state.cart]));$("cartCount").textContent=state.cart.size;}
 function cover(p){
   const imgs = getImages(p);
-  const badge = imgs.length > 1 ? `<span class="photo-count-tag">${imgs.length} pages</span>` : "";
   if(imgs.length){
-    return `<img src="${esc(imgs[0])}" alt="ปกหนังสือ ${esc(p.title)}" loading="lazy">${badge}`;
+    return `<img src="${esc(imgs[0])}" alt="ปกหนังสือ ${esc(p.title)}" loading="lazy">`;
   }
-  return `<div class="cover-placeholder">La<br>Seconde<br>Page ♡</div>${badge}`;
+  return `<div class="cover-placeholder">La<br>Seconde<br>Page ♡</div>`;
 }
 function categories(){
   const cats=[...new Set(state.products.map(p=>p.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"th"));
@@ -92,8 +91,15 @@ function renderCart(){
 function copyOrder(){
   const items=state.products.filter(p=>state.cart.has(p.id)&&p.status==="available");
   if(!items.length){toast("ยังไม่มีหนังสือที่เลือก");return;}
-  const text=["สวัสดีค่ะ สนใจหนังสือจาก La Seconde Page ค่ะ", ...items.map((p,i)=>`${i+1}. ${p.code} — ${p.title}`), "รบกวนตรวจสอบสินค้าและแจ้งยอดรวมพร้อมค่าส่งด้วยนะคะ ♡"].join("\n");
-  if(navigator.clipboard?.writeText){navigator.clipboard.writeText(text).then(()=>toast("คัดลอกรายการแล้ว นำไปส่งทาง LINE ได้เลย")).catch(()=>toast("ไม่สามารถคัดลอกได้ กรุณาแคปหน้าจอแทน"));}
+  const text=[
+    "สวัสดีค่ะ สนใจหนังสือจาก La Seconde Page ค่ะ",
+    ...items.map((p,i)=>`${i+1}. ${p.code} — ${p.title}`),
+    "ส่งธรรมดาไปรษณีย์ / นัดรับในบริเวณใกล้เคียงได้ค่ะ",
+    "TEL. 093-098-5729 | LINE: @mania2550",
+    "รบกวนตรวจสอบสินค้าและแจ้งยอดรวมพร้อมค่าส่งด้วยนะคะ ♡"
+  ].join("
+");
+  if(navigator.clipboard?.writeText){navigator.clipboard.writeText(text).then(()=>toast("คัดลอกรายการแล้ว นำไปส่งได้เลยค่ะ")).catch(()=>toast("ไม่สามารถคัดลอกได้ กรุณาแคปหน้าจอแทน"));}
   else toast("กรุณาแคปหน้าจอรายการแล้วส่งให้ร้านนะคะ");
 }
 function syncDetailButton(){
@@ -193,7 +199,7 @@ function renderAdminProducts(){
   $("adminProductCount").textContent=`${state.products.length} เล่ม`;
   $("adminProducts").innerHTML=state.products.length?state.products.map(p=>{
     const imgs=getImages(p);
-    return `<div class="admin-product">${imgs.length?`<img src="${esc(imgs[0])}" alt="">`:'<div class="cover-placeholder">♡</div>'}<div class="admin-product-main"><strong>${esc(p.code)} · ${esc(p.title)}</strong><small>${money(p.price)} · ${statusText(p.status)} · ${imgs.length} รูป</small></div><button data-edit="${p.id}">แก้ไข</button><button data-delete="${p.id}">ลบ</button></div>`;
+    return `<div class="admin-product">${imgs.length?`<img src="${esc(imgs[0])}" alt="">`:'<div class="cover-placeholder">♡</div>'}<div class="admin-product-main"><strong>${esc(p.code)} · ${esc(p.title)}</strong><small>${money(p.price)} · ${statusText(p.status)}</small></div><button data-edit="${p.id}">แก้ไข</button><button data-delete="${p.id}">ลบ</button></div>`;
   }).join(""):'<p class="tiny-note">ยังไม่มีหนังสือ เพิ่มเล่มแรกของคุณได้เลย</p>';
   $("adminProducts").querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>editProduct(b.dataset.edit)));
   $("adminProducts").querySelectorAll("[data-delete]").forEach(b=>b.addEventListener("click",()=>deleteProduct(b.dataset.delete)));
