@@ -133,25 +133,24 @@ function drawRoundedRect(ctx, x, y, w, h, r){
 
 function buildOrderSlipCanvas(items){
   const subtotal = items.reduce((sum,p)=>sum+Number(p.price||0),0);
-  const width = 920;
-  const padX = 52;
-  const rightX = width - padX - 8;
+  const width = 900;
+  const padX = 56;
   const contentW = width - padX * 2;
-  const titleMaxW = contentW - 250;
+  const textMaxW = contentW - 12;
 
   const measureCanvas = document.createElement("canvas");
   const mctx = measureCanvas.getContext("2d");
-  mctx.font = '500 21px "Noto Sans Thai", sans-serif';
+  mctx.font = '500 22px "Noto Sans Thai", sans-serif';
 
   const itemRows = items.map((p, idx)=>{
     const titleStr = `${idx+1}. ${p.code} — ${p.title}`;
-    const priceStr = money(p.price);
-    const titleLines = wrapTextLines(mctx, titleStr, titleMaxW);
-    return { titleLines, priceStr, rowH: Math.max(40, titleLines.length * 30 + 12) };
+    const priceStr = `ราคา ${money(p.price)}`;
+    const titleLines = wrapTextLines(mctx, titleStr, textMaxW);
+    return { titleLines, priceStr, rowH: titleLines.length * 32 + 34 + 14 };
   });
 
-  const itemsBlockH = itemRows.reduce((a,b)=>a+b.rowH, 0) + 24;
-  const height = 390 + itemsBlockH + 220;
+  const itemsBlockH = itemRows.reduce((a,b)=>a+b.rowH, 0) + 16;
+  const height = 360 + itemsBlockH + 240;
 
   const canvas = document.createElement("canvas");
   canvas.width = width;
@@ -194,45 +193,42 @@ function buildOrderSlipCanvas(items){
   y += 34;
   for(const row of itemRows){
     ctx.fillStyle = "#51434a";
-    ctx.font = '500 21px "Noto Sans Thai", sans-serif';
+    ctx.font = '500 22px "Noto Sans Thai", sans-serif';
     row.titleLines.forEach((ln, li)=>{
-      ctx.fillText(ln, padX, y + li * 30);
+      ctx.fillText(ln, padX, y + li * 32);
     });
+    const priceY = y + row.titleLines.length * 32 + 2;
     ctx.fillStyle = "#82445f";
     ctx.font = '600 21px "Noto Sans Thai", sans-serif';
-    ctx.textAlign = "right";
-    ctx.fillText(row.priceStr, rightX, y);
-    ctx.textAlign = "left";
+    ctx.fillText(row.priceStr, padX, priceY);
     y += row.rowH;
   }
 
-  y += 12;
+  y += 8;
   ctx.beginPath();
   ctx.moveTo(padX, y);
   ctx.lineTo(width - padX, y);
   ctx.stroke();
 
-  y += 44;
+  y += 40;
   ctx.fillStyle = "#51434a";
   ctx.font = '500 22px "Noto Sans Thai", sans-serif';
   ctx.fillText("ค่าหนังสือรวม", padX, y);
+  y += 34;
   ctx.fillStyle = "#82445f";
-  ctx.font = '700 23px "Noto Sans Thai", sans-serif';
-  ctx.textAlign = "right";
-  ctx.fillText(money(subtotal), rightX, y);
-  ctx.textAlign = "left";
+  ctx.font = '700 24px "Noto Sans Thai", sans-serif';
+  ctx.fillText(money(subtotal), padX, y);
 
-  y += 46;
+  y += 44;
   ctx.fillStyle = "#51434a";
   ctx.font = '500 22px "Noto Sans Thai", sans-serif';
   ctx.fillText("ค่าจัดส่ง", padX, y);
+  y += 32;
   ctx.fillStyle = "#927e87";
-  ctx.font = '400 18px "Noto Sans Thai", sans-serif';
-  ctx.textAlign = "right";
-  ctx.fillText("รอการตรวจสอบจากทางร้าน", rightX, y);
-  ctx.textAlign = "left";
+  ctx.font = '400 20px "Noto Sans Thai", sans-serif';
+  ctx.fillText("รอการตรวจสอบจากทางร้าน", padX, y);
 
-  y += 26;
+  y += 28;
   drawRoundedRect(ctx, padX, y, contentW, 118, 18);
   ctx.fillStyle = "#fff5f8";
   ctx.fill();
