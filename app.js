@@ -136,15 +136,18 @@ function buildOrderSlipCanvas(items){
   const width = 900;
   const padX = 56;
   const contentW = width - padX * 2;
+  const priceColW = 190;
+  const titleMaxW = contentW - priceColW - 20;
+
   const measureCanvas = document.createElement("canvas");
   const mctx = measureCanvas.getContext("2d");
-  mctx.font = '500 24px "Noto Sans Thai", sans-serif';
+  mctx.font = '500 22px "Noto Sans Thai", sans-serif';
 
   const itemRows = items.map((p, idx)=>{
     const titleStr = `${idx+1}. ${p.code} — ${p.title}`;
     const priceStr = money(p.price);
-    const titleLines = wrapTextLines(mctx, titleStr, contentW - 170);
-    return { titleLines, priceStr, rowH: Math.max(44, titleLines.length * 32 + 12) };
+    const titleLines = wrapTextLines(mctx, titleStr, titleMaxW);
+    return { titleLines, priceStr, rowH: Math.max(40, titleLines.length * 30 + 12) };
   });
 
   const itemsBlockH = itemRows.reduce((a,b)=>a+b.rowH, 0) + 24;
@@ -191,12 +194,12 @@ function buildOrderSlipCanvas(items){
   y += 34;
   for(const row of itemRows){
     ctx.fillStyle = "#51434a";
-    ctx.font = '500 24px "Noto Sans Thai", sans-serif';
+    ctx.font = '500 22px "Noto Sans Thai", sans-serif';
     row.titleLines.forEach((ln, li)=>{
-      ctx.fillText(ln, padX, y + li * 32);
+      ctx.fillText(ln, padX, y + li * 30);
     });
     ctx.fillStyle = "#82445f";
-    ctx.font = '600 24px "Noto Sans Thai", sans-serif';
+    ctx.font = '600 22px "Noto Sans Thai", sans-serif';
     ctx.textAlign = "right";
     ctx.fillText(row.priceStr, width - padX, y);
     ctx.textAlign = "left";
@@ -211,20 +214,20 @@ function buildOrderSlipCanvas(items){
 
   y += 44;
   ctx.fillStyle = "#51434a";
-  ctx.font = '500 24px "Noto Sans Thai", sans-serif';
+  ctx.font = '500 22px "Noto Sans Thai", sans-serif';
   ctx.fillText("ค่าหนังสือรวม", padX, y);
   ctx.fillStyle = "#82445f";
-  ctx.font = '700 26px "Noto Sans Thai", sans-serif';
+  ctx.font = '700 24px "Noto Sans Thai", sans-serif';
   ctx.textAlign = "right";
   ctx.fillText(money(subtotal), width - padX, y);
   ctx.textAlign = "left";
 
-  y += 44;
+  y += 46;
   ctx.fillStyle = "#51434a";
-  ctx.font = '500 24px "Noto Sans Thai", sans-serif';
+  ctx.font = '500 22px "Noto Sans Thai", sans-serif';
   ctx.fillText("ค่าจัดส่ง", padX, y);
   ctx.fillStyle = "#927e87";
-  ctx.font = '400 22px "Noto Sans Thai", sans-serif';
+  ctx.font = '400 20px "Noto Sans Thai", sans-serif';
   ctx.textAlign = "right";
   ctx.fillText("รอการตรวจสอบจากทางร้าน", width - padX, y);
   ctx.textAlign = "left";
@@ -238,10 +241,10 @@ function buildOrderSlipCanvas(items){
   ctx.stroke();
 
   ctx.fillStyle = "#51434a";
-  ctx.font = '400 21px "Noto Sans Thai", sans-serif';
+  ctx.font = '400 20px "Noto Sans Thai", sans-serif';
   ctx.fillText("จัดส่งแบบพัสดุไปรษณีย์ธรรมดา หรือนัดรับในบริเวณใกล้เคียงได้ค่ะ", padX + 22, y + 44);
   ctx.fillStyle = "#82445f";
-  ctx.font = '600 21px "Noto Sans Thai", sans-serif';
+  ctx.font = '600 20px "Noto Sans Thai", sans-serif';
   ctx.fillText("TEL. 093-098-5729  ·  LINE: @mania2550", padX + 22, y + 84);
 
   y += 156;
