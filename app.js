@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 const SUPABASE_URL = "https://tfcjnuumibxnukitshts.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_tn_VDS-a0xb-ZBnOEK3Azg__4Ib87eK";
@@ -97,8 +97,7 @@ function copyOrder(){
     "ส่งธรรมดาไปรษณีย์ / นัดรับในบริเวณใกล้เคียงได้ค่ะ",
     "TEL. 093-098-5729 | LINE: @mania2550",
     "รบกวนตรวจสอบสินค้าและแจ้งยอดรวมพร้อมค่าส่งด้วยนะคะ ♡"
-  ].join("
-");
+  ].join("\n");
   if(navigator.clipboard?.writeText){navigator.clipboard.writeText(text).then(()=>toast("คัดลอกรายการแล้ว นำไปส่งได้เลยค่ะ")).catch(()=>toast("ไม่สามารถคัดลอกได้ กรุณาแคปหน้าจอแทน"));}
   else toast("กรุณาแคปหน้าจอรายการแล้วส่งให้ร้านนะคะ");
 }
