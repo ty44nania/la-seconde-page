@@ -96,13 +96,14 @@ function copyOrder(){
   if(!items.length){toast("ยังไม่มีหนังสือที่เลือก");return;}
   const subtotal = items.reduce((sum,p)=>sum+Number(p.price||0),0);
   const text=[
-    "สวัสดีค่ะ สนใจหนังสือจาก La Seconde Page ค่ะ",
-    ...items.map((p,i)=>`${i+1}. ${p.code} — ${p.title} (${money(p.price)})`),
+    "La Seconde Page",
+    "--------------------",
+    ...items.map((p,i)=>`${i+1}. ${p.code} · ${p.title} (${money(p.price)})`),
+    "--------------------",
     `ค่าหนังสือรวม: ${money(subtotal)}`,
-    "ค่าจัดส่ง: รอทางร้านแจ้งค่ะ",
-    "ส่งธรรมดาไปรษณีย์ / นัดรับในบริเวณใกล้เคียงได้ค่ะ",
-    "TEL. 093-098-5729 | LINE: @mania2550",
-    "รบกวนตรวจสอบสินค้าและแจ้งค่าส่งด้วยนะคะ ♡"
+    "ค่าจัดส่ง: รอการตรวจสอบจากทางร้าน",
+    "ส่งไปรษณีย์ธรรมดา / นัดรับใกล้เคียง",
+    "TEL. 093-098-5729 | LINE: @mania2550"
   ].join("\n");
   if(navigator.clipboard?.writeText){navigator.clipboard.writeText(text).then(()=>toast("คัดลอกรายการแล้ว นำไปส่งได้เลยค่ะ")).catch(()=>toast("ไม่สามารถคัดลอกได้ กรุณาแคปหน้าจอแทน"));}
   else toast("กรุณาแคปหน้าจอรายการแล้วส่งให้ร้านนะคะ");
@@ -225,7 +226,7 @@ function buildOrderSlipCanvas(items){
   ctx.fillStyle = "#927e87";
   ctx.font = '400 22px "Noto Sans Thai", sans-serif';
   ctx.textAlign = "right";
-  ctx.fillText("รอแจ้งค่าส่ง", width - padX, y);
+  ctx.fillText("รอการตรวจสอบจากทางร้าน", width - padX, y);
   ctx.textAlign = "left";
 
   y += 26;
@@ -263,15 +264,30 @@ function openOrderSlipPreview(){
   openPanel("orderSlipModal");
 }
 
-function downloadOrderSlipImage(){
+async function downloadOrderSlipImage(){
   if(!state.slipDataUrl) return;
-  const link = document.createElement("a");
-  link.href = state.slipDataUrl;
-  link.download = `la-seconde-page-order-${Date.now()}.png`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  toast("บันทึกรูปใบสั่งซื้อแล้วค่ะ ♡");
+  try{
+    const res = await fetch(state.slipDataUrl);
+    const blob = await res.blob();
+    const fileName = `la-seconde-page-order-${Date.now()}.png`;
+    const file = new File([blob], fileName, { type: "image/png" });
+    if(navigator.canShare && navigator.canShare({ files: [file] })){
+      await navigator.share({ files: [file], title: "ใบสั่งซื้อหนังสือ — La Seconde Page" });
+      toast("เปิดเมนูบันทึกรูปใบสั่งซื้อแล้วค่ะ ♡");
+      return;
+    }
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 4000);
+    toast("บันทึกรูปใบสั่งซื้อแล้วค่ะ ♡");
+  }catch(_err){
+    toast("แตะค้างที่รูปใบสั่งซื้อด้านบนเพื่อบันทึกรูปได้เลยค่ะ");
+  }
 }
 
 function syncDetailButton(){
