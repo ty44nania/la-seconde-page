@@ -133,15 +133,15 @@ function drawRoundedRect(ctx, x, y, w, h, r){
 
 function buildOrderSlipCanvas(items){
   const subtotal = items.reduce((sum,p)=>sum+Number(p.price||0),0);
-  const width = 900;
-  const padX = 56;
+  const width = 920;
+  const padX = 52;
+  const rightX = width - padX - 8;
   const contentW = width - padX * 2;
-  const priceColW = 190;
-  const titleMaxW = contentW - priceColW - 20;
+  const titleMaxW = contentW - 250;
 
   const measureCanvas = document.createElement("canvas");
   const mctx = measureCanvas.getContext("2d");
-  mctx.font = '500 22px "Noto Sans Thai", sans-serif';
+  mctx.font = '500 21px "Noto Sans Thai", sans-serif';
 
   const itemRows = items.map((p, idx)=>{
     const titleStr = `${idx+1}. ${p.code} — ${p.title}`;
@@ -194,14 +194,14 @@ function buildOrderSlipCanvas(items){
   y += 34;
   for(const row of itemRows){
     ctx.fillStyle = "#51434a";
-    ctx.font = '500 22px "Noto Sans Thai", sans-serif';
+    ctx.font = '500 21px "Noto Sans Thai", sans-serif';
     row.titleLines.forEach((ln, li)=>{
       ctx.fillText(ln, padX, y + li * 30);
     });
     ctx.fillStyle = "#82445f";
-    ctx.font = '600 22px "Noto Sans Thai", sans-serif';
+    ctx.font = '600 21px "Noto Sans Thai", sans-serif';
     ctx.textAlign = "right";
-    ctx.fillText(row.priceStr, width - padX, y);
+    ctx.fillText(row.priceStr, rightX, y);
     ctx.textAlign = "left";
     y += row.rowH;
   }
@@ -217,9 +217,9 @@ function buildOrderSlipCanvas(items){
   ctx.font = '500 22px "Noto Sans Thai", sans-serif';
   ctx.fillText("ค่าหนังสือรวม", padX, y);
   ctx.fillStyle = "#82445f";
-  ctx.font = '700 24px "Noto Sans Thai", sans-serif';
+  ctx.font = '700 23px "Noto Sans Thai", sans-serif';
   ctx.textAlign = "right";
-  ctx.fillText(money(subtotal), width - padX, y);
+  ctx.fillText(money(subtotal), rightX, y);
   ctx.textAlign = "left";
 
   y += 46;
@@ -227,9 +227,9 @@ function buildOrderSlipCanvas(items){
   ctx.font = '500 22px "Noto Sans Thai", sans-serif';
   ctx.fillText("ค่าจัดส่ง", padX, y);
   ctx.fillStyle = "#927e87";
-  ctx.font = '400 20px "Noto Sans Thai", sans-serif';
+  ctx.font = '400 18px "Noto Sans Thai", sans-serif';
   ctx.textAlign = "right";
-  ctx.fillText("รอการตรวจสอบจากทางร้าน", width - padX, y);
+  ctx.fillText("รอการตรวจสอบจากทางร้าน", rightX, y);
   ctx.textAlign = "left";
 
   y += 26;
