@@ -53,7 +53,7 @@ $("detailAddCart").addEventListener("click",()=>{
 function saveCart(){localStorage.setItem("lsp-cart",JSON.stringify([...state.cart]));$("cartCount").textContent=state.cart.size;}
 function cover(p){
   const imgs = getImages(p);
-  const badge = imgs.length > 1 ? `<span class="photo-count-tag">📷 ${imgs.length} รูป</span>` : "";
+  const badge = imgs.length > 1 ? `<span class="photo-count-tag">${imgs.length} pages</span>` : "";
   if(imgs.length){
     return `<img src="${esc(imgs[0])}" alt="ปกหนังสือ ${esc(p.title)}" loading="lazy">${badge}`;
   }
@@ -136,7 +136,6 @@ function showDetail(id){
     <p class="detail-row"><strong>สถานะ:</strong> ${esc(statusText(p.status))}</p>
     <p class="detail-row"><strong>ผู้เขียน:</strong> ${esc(p.author||"-")}</p>
     <p class="detail-row"><strong>หมวดหมู่:</strong> ${esc(p.category||"-")}</p>
-    <p class="detail-row"><strong>จำนวนรูป:</strong> ${imgs.length} รูป</p>
     <div class="detail-box"><strong>สภาพและตำหนิ</strong><p>${esc(p.condition||"ยังไม่มีรายละเอียดสภาพ")}</p></div>
     <div class="detail-box"><strong>รายละเอียดเพิ่มเติม</strong><p>${esc(p.description||"-")}</p></div>
   `;
