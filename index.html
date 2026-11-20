@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fff4f7">
+  <title>La Seconde Page — Livres de seconde main</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#" id="homeLink" aria-label="La Seconde Page home">
+      <span class="brand-mark">♡</span>
+      <span><strong>La Seconde Page</strong><small>LIVRES DE SECONDE MAIN</small></span>
+    </a>
+    <nav class="header-actions">
+      <button class="text-button" id="adminOpen">สำหรับเจ้าของร้าน</button>
+      <button class="cart-button" id="cartOpen">ถุงหนังสือ <span id="cartCount">0</span></button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">A LITTLE HOME FOR PRE-LOVED BOOKS</p>
+        <h1>เรื่องราวดี ๆ<br><em>ไม่ควรจบแค่ครั้งเดียว</em></h1>
+        <p class="hero-desc">หนังสือมือสองที่กำลังมองหาเจ้าของคนใหม่<br>เลือกเล่มที่ชอบ แล้วส่งรายการมาให้เราได้เลย ♡</p>
+        <a class="pill-link" href="#books">เลือกชมหนังสือ <span>↓</span></a>
+      </div>
+      <div class="hero-art" aria-label="ภาพประกอบหนังสือและดอกไม้">
+        <div class="sparkle s1">✳</div><div class="sparkle s2">✿</div>
+        <div class="book-stack">
+          <div class="book book-one"><span>une nouvelle<br>histoire</span></div>
+          <div class="book book-two"><span>les petits<br>bonheurs</span></div>
+          <div class="book book-three"><span>♡</span></div>
+        </div>
+        <div class="flower">✿</div>
+        <div class="art-note">read · love · pass it on</div>
+      </div>
+    </section>
+
+    <section class="shop-section" id="books">
+      <div class="section-heading">
+        <div><p class="eyebrow">THE BOOKSHELF</p><h2>ชั้นหนังสือของเรา <span>♡</span></h2></div>
+        <p class="section-note">ทุกเล่มเป็นหนังสือมือสอง<br>โปรดดูภาพและตำหนิก่อนเลือกซื้อนะคะ</p>
+      </div>
+      <div class="filters">
+        <input id="searchInput" type="search" placeholder="ค้นหาชื่อหนังสือ / ผู้เขียน..." aria-label="ค้นหาหนังสือ">
+        <select id="categoryFilter" aria-label="เลือกหมวดหมู่"><option value="">ทุกหมวดหมู่</option></select>
+        <select id="statusFilter" aria-label="เลือกสถานะ">
+          <option value="available">พร้อมจำหน่าย</option><option value="all">หนังสือทั้งหมด</option>
+        </select>
+      </div>
+      <div id="bookGrid" class="book-grid">
+        <div class="loading-card">กำลังเปิดชั้นหนังสือของเรา… ♡</div>
+      </div>
+    </section>
+
+    <section class="about-strip">
+      <span class="about-flower">✿</span>
+      <div><p class="eyebrow">A SECOND LIFE FOR BOOKS</p><h2>เล่มเดิม เพิ่มเติมคือเจ้าของคนใหม่</h2><p>เราอยากให้หนังสือทุกเล่มได้เดินทางต่อไป และได้สร้างความทรงจำใหม่กับคุณ</p></div>
+    </section>
+  </main>
+
+  <footer><strong>La Seconde Page</strong><span>Made with love for books ♡</span></footer>
+
+  <div class="overlay" id="cartPanel" aria-hidden="true">
+    <section class="drawer">
+      <div class="drawer-head"><div><p class="eyebrow">YOUR BOOK SELECTION</p><h2>หนังสือที่เลือก <span>♡</span></h2></div><button class="icon-button" data-close="cartPanel" aria-label="ปิด">×</button></div>
+      <p class="drawer-hint">ตรวจสอบรายการหนังสือที่คุณสนใจ แล้วคัดลอกหรือแคปหน้าจอส่งให้ร้านทาง LINE ได้เลย</p>
+      <div id="cartItems" class="cart-items"></div>
+      <div class="drawer-bottom"><button class="primary-button full" id="copyOrder">คัดลอกรายการหนังสือ</button><button class="secondary-button full" id="clearCart">ล้างรายการที่เลือก</button><p class="tiny-note">หน้านี้ไม่รับชำระเงินและไม่คำนวณยอดรวม ร้านจะแจ้งยอดและค่าส่งหลังตรวจสอบสินค้า</p></div>
+    </section>
+  </div>
+
+  <div class="overlay" id="adminPanel" aria-hidden="true">
+    <section class="admin-modal">
+      <div class="drawer-head"><div><p class="eyebrow">PRIVATE CORNER</p><h2>หลังบ้านของร้าน</h2></div><button class="icon-button" data-close="adminPanel" aria-label="ปิด">×</button></div>
+      <div id="loginView" class="login-box">
+        <p>เข้าสู่ระบบเพื่อเพิ่มและจัดการหนังสือ</p>
+        <label>อีเมล<input id="loginEmail" type="email" autocomplete="username" placeholder="your@email.com"></label>
+        <label>รหัสผ่าน<input id="loginPassword" type="password" autocomplete="current-password" placeholder="รหัสผ่าน"></label>
+        <button class="primary-button full" id="loginButton">เข้าสู่ระบบ</button>
+        <p class="tiny-note">บัญชีผู้ดูแลสร้างจาก Supabase เท่านั้น ไม่มีปุ่มสมัครสมาชิกสาธารณะ</p>
+      </div>
+      <div id="adminView" hidden>
+        <div class="admin-topline"><p id="adminWelcome">จัดการชั้นหนังสือ</p><button class="secondary-button small" id="logoutButton">ออกจากระบบ</button></div>
+        <form id="productForm" class="product-form">
+          <input type="hidden" id="productId">
+          <h3 id="formTitle">เพิ่มหนังสือเล่มใหม่</h3>
+          <div class="form-grid">
+            <label>รหัสหนังสือ *<input id="pCode" required placeholder="เช่น B001"></label>
+            <label>ชื่อหนังสือ *<input id="pTitle" required placeholder="ชื่อหนังสือ"></label>
+            <label>ผู้เขียน<input id="pAuthor" placeholder="ชื่อผู้เขียน"></label>
+            <label>ราคา (บาท)<input id="pPrice" type="number" min="0" step="1" placeholder="120"></label>
+            <label>หมวดหมู่<input id="pCategory" list="categoryOptions" placeholder="เช่น นิยาย"><datalist id="categoryOptions"></datalist></label>
+            <label>สถานะ<select id="pStatus"><option value="available">พร้อมจำหน่าย</option><option value="reserved">จองแล้ว</option><option value="sold">ขายแล้ว</option></select></label>
+          </div>
+          <label>รายละเอียดสภาพ / ตำหนิ<textarea id="pCondition" rows="3" placeholder="เช่น ปกมีรอยถลอกเล็กน้อย กระดาษเหลืองตามอายุ"></textarea></label>
+          <label>รายละเอียดเพิ่มเติม<textarea id="pDescription" rows="3" placeholder="รายละเอียดอื่น ๆ ของหนังสือ"></textarea></label>
+          <label>รูปหนังสือ<input id="pImage" type="file" accept="image/*"></label>
+          <div id="imagePreview" class="image-preview">ยังไม่ได้เลือกรูป</div>
+          <div class="form-actions"><button type="submit" class="primary-button">บันทึกหนังสือ</button><button type="button" class="secondary-button" id="resetForm">ล้างฟอร์ม</button></div>
+        </form>
+        <div class="admin-list-head"><h3>รายการหนังสือ</h3><span id="adminProductCount"></span></div>
+        <div id="adminProducts" class="admin-products"></div>
+      </div>
+      <p id="adminMessage" class="message" role="status"></p>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
