@@ -14,7 +14,8 @@ const state = {
   editingImages: [],
   selectedFiles: [],
   activeDetailId: null,
-  activeDetailPhotoIdx: 0
+  activeDetailPhotoIdx: 0,
+  slipDataUrl: ""
 };
 const money = (n) => `${Number(n || 0).toLocaleString("th-TH")} บาท`;
 const esc = (s="") => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -38,6 +39,8 @@ $("searchInput").addEventListener("input",renderBooks);
 $("categoryFilter").addEventListener("change",renderBooks);
 $("statusFilter").addEventListener("change",renderBooks);
 $("copyOrder").addEventListener("click",copyOrder);
+$("saveOrderImage")?.addEventListener("click",openOrderSlipPreview);
+$("downloadSlipImage")?.addEventListener("click",downloadOrderSlipImage);
 $("clearCart").addEventListener("click",()=>{state.cart.clear();saveCart();renderCart();renderBooks();toast("ล้างรายการแล้ว");});
 $("loginButton").addEventListener("click",login);
 $("logoutButton").addEventListener("click",logout);
@@ -84,23 +87,194 @@ function renderCart(){
   const items=state.products.filter(p=>state.cart.has(p.id)&&p.status==="available");
   $("cartItems").innerHTML=items.length?items.map(p=>{
     const imgs=getImages(p);
-    return `<div class="cart-row">${imgs.length?`<img src="${esc(imgs[0])}" alt="">`:'<div class="cart-thumb"></div>'}<div><strong>${esc(p.title)}</strong><small>${esc(p.code)} · ${esc(p.category||"")}</small></div><button class="remove-item" data-remove="${p.id}" aria-label="นำออก">×</button></div>`;
+    return `<div class="cart-row">${imgs.length?`<img src="${esc(imgs[0])}" alt="">`:'<div class="cart-thumb"></div>'}<div><strong>${esc(p.title)}</strong><small>${esc(p.code)} · ${money(p.price)}</small></div><button class="remove-item" data-remove="${p.id}" aria-label="นำออก">×</button></div>`;
   }).join(""):'<div class="empty-state">ยังไม่มีหนังสือในรายการที่เลือก ♡</div>';
   $("cartItems").querySelectorAll("[data-remove]").forEach(b=>b.addEventListener("click",()=>toggleCart(b.dataset.remove)));
 }
 function copyOrder(){
   const items=state.products.filter(p=>state.cart.has(p.id)&&p.status==="available");
   if(!items.length){toast("ยังไม่มีหนังสือที่เลือก");return;}
+  const subtotal = items.reduce((sum,p)=>sum+Number(p.price||0),0);
   const text=[
     "สวัสดีค่ะ สนใจหนังสือจาก La Seconde Page ค่ะ",
-    ...items.map((p,i)=>`${i+1}. ${p.code} — ${p.title}`),
+    ...items.map((p,i)=>`${i+1}. ${p.code} — ${p.title} (${money(p.price)})`),
+    `ค่าหนังสือรวม: ${money(subtotal)}`,
+    "ค่าจัดส่ง: รอทางร้านแจ้งค่ะ",
     "ส่งธรรมดาไปรษณีย์ / นัดรับในบริเวณใกล้เคียงได้ค่ะ",
     "TEL. 093-098-5729 | LINE: @mania2550",
-    "รบกวนตรวจสอบสินค้าและแจ้งยอดรวมพร้อมค่าส่งด้วยนะคะ ♡"
-  ].join("\n");
+    "รบกวนตรวจสอบสินค้าและแจ้งค่าส่งด้วยนะคะ ♡"
+  ].join("
+");
   if(navigator.clipboard?.writeText){navigator.clipboard.writeText(text).then(()=>toast("คัดลอกรายการแล้ว นำไปส่งได้เลยค่ะ")).catch(()=>toast("ไม่สามารถคัดลอกได้ กรุณาแคปหน้าจอแทน"));}
   else toast("กรุณาแคปหน้าจอรายการแล้วส่งให้ร้านนะคะ");
 }
+
+function wrapTextLines(ctx, text, maxWidth){
+  const chars = Array.from(String(text || ""));
+  const lines = [];
+  let line = "";
+  for(const ch of chars){
+    const test = line + ch;
+    if(ctx.measureText(test).width > maxWidth && line){
+      lines.push(line);
+      line = ch;
+    }else{
+      line = test;
+    }
+  }
+  if(line) lines.push(line);
+  return lines.length ? lines : [""];
+}
+
+function drawRoundedRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, r);
+}
+
+function buildOrderSlipCanvas(items){
+  const subtotal = items.reduce((sum,p)=>sum+Number(p.price||0),0);
+  const width = 900;
+  const padX = 56;
+  const contentW = width - padX * 2;
+  const measureCanvas = document.createElement("canvas");
+  const mctx = measureCanvas.getContext("2d");
+  mctx.font = '500 24px "Noto Sans Thai", sans-serif';
+
+  const itemRows = items.map((p, idx)=>{
+    const titleStr = `${idx+1}. ${p.code} — ${p.title}`;
+    const priceStr = money(p.price);
+    const titleLines = wrapTextLines(mctx, titleStr, contentW - 170);
+    return { titleLines, priceStr, rowH: Math.max(44, titleLines.length * 32 + 12) };
+  });
+
+  const itemsBlockH = itemRows.reduce((a,b)=>a+b.rowH, 0) + 24;
+  const height = 390 + itemsBlockH + 220;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#fffaf8";
+  ctx.fillRect(0, 0, width, height);
+
+  drawRoundedRect(ctx, 24, 24, width - 48, height - 48, 28);
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#efd6e0";
+  ctx.stroke();
+
+  let y = 84;
+  ctx.fillStyle = "#b17a91";
+  ctx.font = '700 16px "DM Sans", sans-serif';
+  ctx.fillText("LA SECONDE PAGE · ORDER SLIP", padX, y);
+
+  y += 44;
+  ctx.fillStyle = "#82445f";
+  ctx.font = '600 38px "Cormorant Garamond", "Noto Sans Thai", serif';
+  ctx.fillText("ใบสั่งซื้อหนังสือ", padX, y);
+
+  const dateText = new Date().toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" });
+  ctx.fillStyle = "#927e87";
+  ctx.font = '400 20px "Noto Sans Thai", sans-serif';
+  ctx.fillText(`วันที่: ${dateText}  ·  จำนวน ${items.length} เล่ม`, padX, y + 36);
+
+  y += 66;
+  ctx.strokeStyle = "#f0dfe5";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(padX, y);
+  ctx.lineTo(width - padX, y);
+  ctx.stroke();
+
+  y += 34;
+  for(const row of itemRows){
+    ctx.fillStyle = "#51434a";
+    ctx.font = '500 24px "Noto Sans Thai", sans-serif';
+    row.titleLines.forEach((ln, li)=>{
+      ctx.fillText(ln, padX, y + li * 32);
+    });
+    ctx.fillStyle = "#82445f";
+    ctx.font = '600 24px "Noto Sans Thai", sans-serif';
+    ctx.textAlign = "right";
+    ctx.fillText(row.priceStr, width - padX, y);
+    ctx.textAlign = "left";
+    y += row.rowH;
+  }
+
+  y += 12;
+  ctx.beginPath();
+  ctx.moveTo(padX, y);
+  ctx.lineTo(width - padX, y);
+  ctx.stroke();
+
+  y += 44;
+  ctx.fillStyle = "#51434a";
+  ctx.font = '500 24px "Noto Sans Thai", sans-serif';
+  ctx.fillText("ค่าหนังสือรวม", padX, y);
+  ctx.fillStyle = "#82445f";
+  ctx.font = '700 26px "Noto Sans Thai", sans-serif';
+  ctx.textAlign = "right";
+  ctx.fillText(money(subtotal), width - padX, y);
+  ctx.textAlign = "left";
+
+  y += 44;
+  ctx.fillStyle = "#51434a";
+  ctx.font = '500 24px "Noto Sans Thai", sans-serif';
+  ctx.fillText("ค่าจัดส่ง", padX, y);
+  ctx.fillStyle = "#927e87";
+  ctx.font = '400 22px "Noto Sans Thai", sans-serif';
+  ctx.textAlign = "right";
+  ctx.fillText("รอแจ้งค่าส่ง", width - padX, y);
+  ctx.textAlign = "left";
+
+  y += 26;
+  drawRoundedRect(ctx, padX, y, contentW, 118, 18);
+  ctx.fillStyle = "#fff5f8";
+  ctx.fill();
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = "#efd7e1";
+  ctx.stroke();
+
+  ctx.fillStyle = "#51434a";
+  ctx.font = '400 21px "Noto Sans Thai", sans-serif';
+  ctx.fillText("จัดส่งแบบพัสดุไปรษณีย์ธรรมดา หรือนัดรับในบริเวณใกล้เคียงได้ค่ะ", padX + 22, y + 44);
+  ctx.fillStyle = "#82445f";
+  ctx.font = '600 21px "Noto Sans Thai", sans-serif';
+  ctx.fillText("TEL. 093-098-5729  ·  LINE: @mania2550", padX + 22, y + 84);
+
+  y += 156;
+  ctx.fillStyle = "#927e87";
+  ctx.font = '400 18px "Noto Sans Thai", sans-serif';
+  ctx.fillText("รวมเฉพาะค่าหนังสือและเว้นค่าส่งไว้ · ร้านจะแจ้งยอดสุทธิหลังตรวจสอบสินค้าค่ะ ♡", padX, y);
+
+  return canvas;
+}
+
+function openOrderSlipPreview(){
+  const items = state.products.filter(p=>state.cart.has(p.id)&&p.status==="available");
+  if(!items.length){
+    toast("ยังไม่มีหนังสือในรายการที่เลือก");
+    return;
+  }
+  const canvas = buildOrderSlipCanvas(items);
+  state.slipDataUrl = canvas.toDataURL("image/png");
+  $("slipPreviewBox").innerHTML = `<img src="${state.slipDataUrl}" alt="ใบสั่งซื้อหนังสือ La Seconde Page">`;
+  openPanel("orderSlipModal");
+}
+
+function downloadOrderSlipImage(){
+  if(!state.slipDataUrl) return;
+  const link = document.createElement("a");
+  link.href = state.slipDataUrl;
+  link.download = `la-seconde-page-order-${Date.now()}.png`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  toast("บันทึกรูปใบสั่งซื้อแล้วค่ะ ♡");
+}
+
 function syncDetailButton(){
   const p=state.products.find(x=>x.id===state.activeDetailId);
   if(!p)return;

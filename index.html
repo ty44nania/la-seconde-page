@@ -70,7 +70,7 @@
   <div class="overlay" id="cartPanel" aria-hidden="true">
     <section class="drawer">
       <div class="drawer-head"><div><p class="eyebrow">YOUR BOOK SELECTION</p><h2>หนังสือที่เลือก <span>♡</span></h2></div><button class="icon-button" data-close="cartPanel" aria-label="ปิด">×</button></div>
-      <p class="drawer-hint">ตรวจสอบรายการหนังสือที่สนใจ แล้วกดคัดลอกส่งให้ร้านได้เลยค่ะ</p>
+      <p class="drawer-hint">ตรวจสอบรายการหนังสือที่สนใจ แล้วกดคัดลอกหรือบันทึกใบสั่งซื้อส่งให้ร้านได้เลยค่ะ</p>
       <div id="cartItems" class="cart-items"></div>
       <div class="drawer-bottom">
         <div class="delivery-contact-box">
@@ -78,8 +78,24 @@
           <p class="contact-line"><strong>TEL.</strong> 093-098-5729 · <strong>LINE:</strong> @mania2550</p>
         </div>
         <button class="primary-button full" id="copyOrder">คัดลอกรายการหนังสือ</button>
+        <button class="secondary-button full" id="saveOrderImage">บันทึกภาพใบสั่งซื้อ</button>
         <button class="secondary-button full" id="clearCart">ล้างรายการที่เลือก</button>
-        <p class="tiny-note">หน้านี้ไม่รับชำระเงินและไม่คำนวณยอดรวม ร้านจะแจ้งยอดและค่าส่งหลังตรวจสอบสินค้า</p>
+        <p class="tiny-note">ใบสั่งซื้อรวมเฉพาะค่าหนังสือและเว้นค่าส่งไว้ ร้านจะแจ้งค่าส่งและยอดรวมสุทธิอีกครั้งหลังตรวจสอบสินค้าค่ะ</p>
+      </div>
+    </section>
+  </div>
+
+  <div class="overlay" id="orderSlipModal" aria-hidden="true">
+    <section class="slip-modal">
+      <div class="drawer-head">
+        <div><p class="eyebrow">ORDER SLIP PREVIEW</p><h2>ใบสั่งซื้อหนังสือ <span>♡</span></h2></div>
+        <button class="icon-button" data-close="orderSlipModal" aria-label="ปิด">×</button>
+      </div>
+      <p class="drawer-hint">บันทึกรูปใบสั่งซื้อนี้เก็บไว้หรือส่งให้ร้านได้เลยค่ะ (ค่าส่งเว้นไว้รอทางร้านแจ้ง)</p>
+      <div id="slipPreviewBox" class="slip-preview-box"></div>
+      <div class="slip-actions">
+        <button class="primary-button full" id="downloadSlipImage">ดาวน์โหลดรูปภาพ (.PNG)</button>
+        <button class="secondary-button full" data-close="orderSlipModal">ปิดหน้าต่าง</button>
       </div>
     </section>
   </div>
