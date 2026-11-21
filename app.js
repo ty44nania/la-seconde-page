@@ -369,8 +369,7 @@ function copyOrder(){
     `ยอดรวมสุทธิ: ${calc.grandTotal === null ? `ตั้งแต่ ${money(calc.netBooks)} (+ ค่าส่ง)` : money(calc.grandTotal)}`,
     `IG: @${ig}`
   ];
-  const text = lines.join("
-");
+  const text = lines.join("\n");
   const openIgLink = () => {
     const url = state.settings.ig_url || `https://www.instagram.com/${ig}/`;
     window.open(url, "_blank", "noopener,noreferrer");
