@@ -65,22 +65,56 @@
     </section>
   </main>
 
-  <footer><strong>La Seconde Page</strong><span>Made with love for books ♡</span></footer>
+  <footer><strong>La Seconde Page</strong><span>IG @la_seconde_page_ · Made with love for books ♡</span></footer>
 
   <div class="overlay" id="cartPanel" aria-hidden="true">
     <section class="drawer">
-      <div class="drawer-head"><div><p class="eyebrow">YOUR BOOK SELECTION</p><h2>หนังสือที่เลือก <span>♡</span></h2></div><button class="icon-button" data-close="cartPanel" aria-label="ปิด">×</button></div>
+      <div class="drawer-head">
+        <div><p class="eyebrow">YOUR BOOK SELECTION</p><h2>หนังสือที่เลือก <span>♡</span></h2></div>
+        <button class="icon-button" data-close="cartPanel" aria-label="ปิด">×</button>
+      </div>
+
+      <div id="cartTimerBanner" class="timer-banner" hidden>
+        <div>
+          <strong id="cartTimerText">เหลือเวลาถือรายการ 30:00</strong>
+          <small id="cartTimerSub">ระบบจะปล่อยรายการออกอัตโนมัติเมื่อครบเวลา</small>
+        </div>
+        <button type="button" class="secondary-button small" id="extendTimerBtn">ต่อเวลา 30 นาที</button>
+      </div>
+
       <p class="drawer-hint">ตรวจสอบรายการหนังสือที่สนใจ แล้วกดคัดลอกหรือบันทึกใบสั่งซื้อส่งให้ร้านได้เลยค่ะ</p>
       <div id="cartItems" class="cart-items"></div>
+
+      <div class="shipping-box">
+        <label class="field-label" for="provinceInput">เลือกจังหวัด (77 จังหวัด)</label>
+        <input id="provinceInput" list="provinceList" type="text" placeholder="พิมพ์ค้นหาชื่อจังหวัด เช่น กรุงเทพมหานคร, เชียงใหม่..." autocomplete="off">
+        <datalist id="provinceList"></datalist>
+
+        <div id="bkkMethodBox" class="bkk-method-box" hidden>
+          <span class="field-label">เลือกรูปแบบรับสินค้าในกรุงเทพมหานคร</span>
+          <label class="radio-option">
+            <input type="radio" name="bkkMethod" value="post" checked>
+            <span>ส่งไปรษณีย์ (เริ่มต้น 35 บาท)</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="bkkMethod" value="meetup">
+            <span>นัดรับ MRT ห้วยขวาง (ค่าส่ง 0 บาท)</span>
+          </label>
+          <p class="tiny-note" id="meetupNote" hidden>นัดรับ MRT ห้วยขวาง: ไม่สามารถระบุวันรับล่วงหน้าได้ รอวันเวลาที่ว่างตรงกันค่ะ</p>
+        </div>
+      </div>
+
+      <div id="orderSummaryBox" class="summary-box"></div>
+
       <div class="drawer-bottom">
         <div class="delivery-contact-box">
-          <p class="delivery-line">จัดส่งแบบพัสดุไปรษณีย์ธรรมดา หรือนัดรับในบริเวณใกล้เคียงได้ค่ะ</p>
-          <p class="contact-line"><strong>TEL.</strong> 093-098-5729 · <strong>LINE:</strong> @mania2550</p>
+          <p class="delivery-line" id="shippingSummaryLine">กรุณาเลือกจังหวัดเพื่อคำนวณค่าจัดส่งค่ะ</p>
+          <p class="contact-line"><strong>Instagram:</strong> @la_seconde_page_</p>
         </div>
-        <button class="primary-button full" id="copyOrder">คัดลอกรายการหนังสือ</button>
+        <button class="primary-button full" id="copyOrder">คัดลอกส่ง IG @la_seconde_page_</button>
         <button class="secondary-button full" id="saveOrderImage">บันทึกภาพใบสั่งซื้อ</button>
         <button class="secondary-button full" id="clearCart">ล้างรายการที่เลือก</button>
-        <p class="tiny-note">ใบสั่งซื้อรวมเฉพาะค่าหนังสือและเว้นค่าส่งไว้ ร้านจะแจ้งค่าส่งและยอดรวมสุทธิอีกครั้งหลังตรวจสอบสินค้าค่ะ</p>
+        <p class="tiny-note">สถานะหนังสือยึดตามการยืนยันกับทางร้านเป็นหลัก ร้านจะตรวจสอบและยืนยันสิทธิ์ให้อีกครั้งค่ะ</p>
       </div>
     </section>
   </div>
@@ -91,7 +125,7 @@
         <div><p class="eyebrow">ORDER SLIP PREVIEW</p><h2>ใบสั่งซื้อหนังสือ <span>♡</span></h2></div>
         <button class="icon-button" data-close="orderSlipModal" aria-label="ปิด">×</button>
       </div>
-      <p class="drawer-hint">บันทึกรูปใบสั่งซื้อนี้เก็บไว้หรือส่งให้ร้านได้เลยค่ะ (ค่าส่งเว้นไว้รอทางร้านแจ้ง)</p>
+      <p class="drawer-hint">บันทึกรูปใบสั่งซื้อนี้เก็บไว้หรือส่งให้ทางร้านที่ IG @la_seconde_page_ ได้เลยค่ะ</p>
       <div id="slipPreviewBox" class="slip-preview-box"></div>
       <div class="slip-actions">
         <button class="primary-button full" id="downloadSlipImage">ดาวน์โหลดรูปภาพ (.PNG)</button>
@@ -117,7 +151,10 @@
 
   <div class="overlay" id="adminPanel" aria-hidden="true">
     <section class="admin-modal">
-      <div class="drawer-head"><div><p class="eyebrow">PRIVATE CORNER</p><h2>หลังบ้านของร้าน</h2></div><button class="icon-button" data-close="adminPanel" aria-label="ปิด">×</button></div>
+      <div class="drawer-head">
+        <div><p class="eyebrow">PRIVATE CORNER</p><h2>หลังบ้านของร้าน</h2></div>
+        <button class="icon-button" data-close="adminPanel" aria-label="ปิด">×</button>
+      </div>
       <div id="loginView" class="login-box">
         <p>เข้าสู่ระบบเพื่อเพิ่มและจัดการหนังสือ</p>
         <label>อีเมล<input id="loginEmail" type="email" autocomplete="username" placeholder="your@email.com"></label>
@@ -125,8 +162,37 @@
         <button class="primary-button full" id="loginButton">เข้าสู่ระบบ</button>
         <p class="tiny-note">บัญชีผู้ดูแลสร้างจาก Supabase เท่านั้น ไม่มีปุ่มสมัครสมาชิกสาธารณะ</p>
       </div>
+
       <div id="adminView" hidden>
-        <div class="admin-topline"><p id="adminWelcome">จัดการชั้นหนังสือ</p><button class="secondary-button small" id="logoutButton">ออกจากระบบ</button></div>
+        <div class="admin-topline">
+          <p id="adminWelcome">จัดการชั้นหนังสือ</p>
+          <button class="secondary-button small" id="logoutButton">ออกจากระบบ</button>
+        </div>
+
+        <form id="settingsForm" class="product-form settings-card">
+          <h3>ตั้งค่าโปรโมชัน น้ำหนักกล่อง และค่าจัดส่ง</h3>
+          <div class="form-grid">
+            <label class="checkbox-inline">
+              <input type="checkbox" id="sPromoActive"> เปิดใช้งานโปรโมชันส่วนลด
+            </label>
+            <label>ซื้อขั้นต่ำ (เล่ม)<input id="sPromoMinQty" type="number" min="1" step="1" value="2"></label>
+            <label>ประเภทส่วนลด
+              <select id="sPromoType">
+                <option value="percent">ลดเป็น %</option>
+                <option value="amount">ลดเป็น บาท</option>
+              </select>
+            </label>
+            <label>มูลค่าส่วนลด (% หรือ บาท)<input id="sPromoValue" type="number" min="0" step="1" value="0"></label>
+            <label>น้ำหนักบับเบิ้ลต่อเล่ม (กรัม)<input id="sBubbleWeight" type="number" min="0" step="1" value="20"></label>
+            <label>น้ำหนักกล่องไซส์ B (กรัม)<input id="sBoxWeightB" type="number" min="0" step="1" value="90"></label>
+            <label>เรท กทม. เริ่มต้น (บาท)<input id="sBkkBaseRate" type="number" min="0" step="1" value="35"></label>
+            <label>เรท ตจว. เริ่มต้น (บาท)<input id="sUpcBaseRate" type="number" min="0" step="1" value="45"></label>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="primary-button">บันทึกการตั้งค่า</button>
+          </div>
+        </form>
+
         <form id="productForm" class="product-form">
           <input type="hidden" id="productId">
           <h3 id="formTitle">เพิ่มหนังสือเล่มใหม่</h3>
@@ -135,6 +201,15 @@
             <label>ชื่อหนังสือ *<input id="pTitle" required placeholder="ชื่อหนังสือ"></label>
             <label>ผู้เขียน<input id="pAuthor" placeholder="ชื่อผู้เขียน"></label>
             <label>ราคา (บาท)<input id="pPrice" type="number" min="0" step="1" placeholder="120"></label>
+            <label>จำนวนหน้า (ค่ากลาง 200)<input id="pPages" type="number" min="1" step="1" placeholder="200"></label>
+            <label>ไซส์กล่องไปรษณีย์
+              <select id="pBoxSize">
+                <option value="B" selected>ไซส์ B (ค่าเริ่มต้น)</option>
+                <option value="A">ไซส์ A</option>
+                <option value="C">ไซส์ C</option>
+                <option value="reuse">กล่องรียูส / กำหนดเอง</option>
+              </select>
+            </label>
             <label>หมวดหมู่<input id="pCategory" list="categoryOptions" placeholder="เช่น นิยาย"><datalist id="categoryOptions"></datalist></label>
             <label>สถานะ<select id="pStatus"><option value="available">พร้อมจำหน่าย</option><option value="reserved">จองแล้ว</option><option value="sold">ขายแล้ว</option></select></label>
           </div>
