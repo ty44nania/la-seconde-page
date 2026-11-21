@@ -258,9 +258,13 @@ function renderOrderSummary(){
     return;
   }
 
+  const minQty = Number(state.settings.promo_min_qty || 1);
+  const promoHint = (state.settings.promo_active && Number(state.settings.promo_value || 0) > 0 && items.length < minQty)
+    ? `<p class="tiny-note">โปรโมชัน: เลือกเพิ่มอีก ${minQty - items.length} เล่ม (ครบ ${minQty} เล่ม) เพื่อรับส่วนลดค่ะ</p>`
+    : "";
   const discountRow = calc.discount > 0
     ? `<div class="summary-row discount"><span>ส่วนลดโปรโมชัน</span><span>-${money(calc.discount)}</span></div>`
-    : "";
+    : promoHint;
   const shipText = calc.shippingCost === null ? "รอเลือกจังหวัด" : money(calc.shippingCost);
   const totalText = calc.grandTotal === null ? `ตั้งแต่ ${money(calc.netBooks)} (+ ค่าส่ง)` : money(calc.grandTotal);
 
@@ -649,10 +653,20 @@ function populateSettingsForm(){
 }
 
 async function loadSettings(){
+  try{
+    const savedLocal = JSON.parse(localStorage.getItem("lsp-settings") || "null");
+    if(savedLocal && typeof savedLocal === "object"){
+      state.settings = { ...DEFAULT_SETTINGS, ...savedLocal };
+      populateSettingsForm();
+      renderOrderSummary();
+    }
+  }catch(_e){}
+
   if(!configured) return;
   const { data, error } = await supabase.from("store_settings").select("*").eq("id", "default").maybeSingle();
   if(!error && data){
     state.settings = { ...DEFAULT_SETTINGS, ...data };
+    localStorage.setItem("lsp-settings", JSON.stringify(state.settings));
     populateSettingsForm();
     renderOrderSummary();
   }
@@ -660,26 +674,35 @@ async function loadSettings(){
 
 async function saveSettings(e){
   e.preventDefault();
-  if(!state.user || !configured) return;
+  if(!state.user) return;
   const payload = {
     id: "default",
-    promo_active: $("sPromoActive").checked,
-    promo_min_qty: Math.max(1, Number($("sPromoMinQty").value || 1)),
-    promo_type: $("sPromoType").value === "amount" ? "amount" : "percent",
-    promo_value: Math.max(0, Number($("sPromoValue").value || 0)),
-    bubble_weight: Math.max(0, Number($("sBubbleWeight").value || 20)),
-    box_weight_b: Math.max(0, Number($("sBoxWeightB").value || 90)),
-    bkk_base_rate: Math.max(0, Number($("sBkkBaseRate").value || 35)),
-    upc_base_rate: Math.max(0, Number($("sUpcBaseRate").value || 45)),
+    promo_active: Boolean($("sPromoActive")?.checked),
+    promo_min_qty: Math.max(1, Number($("sPromoMinQty")?.value || 1)),
+    promo_type: $("sPromoType")?.value === "amount" ? "amount" : "percent",
+    promo_value: Math.max(0, Number($("sPromoValue")?.value || 0)),
+    bubble_weight: Math.max(0, Number($("sBubbleWeight")?.value || 20)),
+    box_weight_b: Math.max(0, Number($("sBoxWeightB")?.value || 90)),
+    bkk_base_rate: Math.max(0, Number($("sBkkBaseRate")?.value || 35)),
+    upc_base_rate: Math.max(0, Number($("sUpcBaseRate")?.value || 45)),
     updated_at: new Date().toISOString()
   };
-  const { error } = await supabase.from("store_settings").upsert(payload);
-  if(error){
-    $("adminMessage").textContent = "บันทึกการตั้งค่าไม่สำเร็จ: " + error.message;
+  state.settings = { ...state.settings, ...payload };
+  localStorage.setItem("lsp-settings", JSON.stringify(state.settings));
+  renderOrderSummary();
+
+  if(!configured){
+    $("adminMessage").textContent = "บันทึกการตั้งค่าไว้ในเครื่องแล้ว ♡";
+    toast("บันทึกการตั้งค่าแล้วค่ะ");
     return;
   }
-  state.settings = { ...state.settings, ...payload };
-  renderOrderSummary();
+
+  const { error } = await supabase.from("store_settings").upsert(payload);
+  if(error){
+    $("adminMessage").textContent = "บันทึกในเครื่องแล้ว (ฐานข้อมูลแจ้ง: " + error.message + ")";
+    toast("บันทึกการตั้งค่าในเครื่องแล้วค่ะ");
+    return;
+  }
   $("adminMessage").textContent = "บันทึกการตั้งค่าโปรโมชันและค่าจัดส่งแล้ว ♡";
   toast("บันทึกการตั้งค่าแล้วค่ะ");
 }
